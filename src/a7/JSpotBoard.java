@@ -24,6 +24,8 @@ import javax.swing.JPanel;
 
 public class JSpotBoard extends JPanel implements SpotBoard {
 
+	public static enum BoardStyle {CHECKERED, UNIFORM, ROWS, COLUMNS};
+	
 	private static final int DEFAULT_SCREEN_WIDTH = 500;
 	private static final int DEFAULT_SCREEN_HEIGHT = 500;
 	private static final Color DEFAULT_BACKGROUND_LIGHT = new Color(0.8f, 0.8f, 0.8f);
@@ -33,7 +35,7 @@ public class JSpotBoard extends JPanel implements SpotBoard {
 
 	private Spot[][] _spots;
 	
-	public JSpotBoard(int width, int height, boolean checkered) {
+	public JSpotBoard(int width, int height, BoardStyle boardStyle) {
 		if (width < 1 || height < 1 || width > 50 || height > 50) {
 			throw new IllegalArgumentException("Illegal spot board geometry");
 		}
@@ -44,8 +46,26 @@ public class JSpotBoard extends JPanel implements SpotBoard {
 		
 		for (int y=0; y<height; y++) {
 			for (int x=0; x<width; x++) {
-				Color bg = ((x+y)%2 == 0) ? DEFAULT_BACKGROUND_LIGHT : DEFAULT_BACKGROUND_DARK;
-				if (!checkered) { bg = DEFAULT_BACKGROUND_LIGHT; }
+				Color bg = null;
+				switch (boardStyle.toString().toLowerCase()) {
+				
+				case "checkered":
+					bg = ((x+y)%2 == 0) ? DEFAULT_BACKGROUND_LIGHT : DEFAULT_BACKGROUND_DARK;
+					break;
+				case "uniform":
+					bg = DEFAULT_BACKGROUND_LIGHT;
+					break;
+				case "rows":
+					bg = (y%2 == 0) ? DEFAULT_BACKGROUND_LIGHT : DEFAULT_BACKGROUND_DARK;
+					break;
+				case "columns":
+					bg = (x%2 == 0) ? DEFAULT_BACKGROUND_LIGHT : DEFAULT_BACKGROUND_DARK;
+					break;
+				default:
+					bg = DEFAULT_BACKGROUND_LIGHT;
+					break;
+				}
+				
 				_spots[x][y] = new JSpot(bg, DEFAULT_SPOT_COLOR, DEFAULT_HIGHLIGHT_COLOR, this, x, y);
 				((JSpot)_spots[x][y]).setPreferredSize(preferred_size);
 				add(((JSpot) _spots[x][y]));

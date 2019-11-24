@@ -9,6 +9,8 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import a7.JSpotBoard.BoardStyle;
+
 public class TicTacToeWidget extends JPanel implements ActionListener, SpotListener{
 
 	// Enum to identify player
@@ -28,7 +30,7 @@ public class TicTacToeWidget extends JPanel implements ActionListener, SpotListe
 	public TicTacToeWidget() {
 		
 		// Create SpotBoard and message label
-		_board = new JSpotBoard(3,3, false);
+		_board = new JSpotBoard(3,3, BoardStyle.UNIFORM);
 		_message = new JLabel();
 		
 		// Create player boards

@@ -13,16 +13,17 @@ public class TicTacToeWidget extends JPanel implements ActionListener, SpotListe
 
 	// Enum to identify player
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	private enum Player {BLACK, WHITE};
 	
 	private JSpotBoard _board;		//SpotBoard playing area
 	private JLabel _message;		// Label for messages
 	private boolean _gameWon;		// Game Won boolean
 	private Player _nextToPlay;		// Turn of player 2
-	
-	// Variables to hold positions of players
-	private SpotBoard _player1Board;
-	private SpotBoard _player2Board;
 	
 	public TicTacToeWidget() {
 		
@@ -71,11 +72,11 @@ public class TicTacToeWidget extends JPanel implements ActionListener, SpotListe
 		
 		// Reset game won and next to play
 		_gameWon = false;
-		_nextToPlay = Player.BLACK;
+		_nextToPlay = Player.WHITE;
 		
 		// Start message
+		_message.setText("Welcome to Tic Tac Toe. White to play.");
 		
-		_message.setText("Welcome to Tic Tac Toe. Black to play.");
 	}
 	
 	// Implementation of SpotListener, logic to run tic tac toe game
@@ -85,37 +86,51 @@ public class TicTacToeWidget extends JPanel implements ActionListener, SpotListe
 		if(_gameWon || !s.isEmpty()) {return;}
 		
 		// Variables for player name, color, and next player, assuming start of game
-		String player1 = "Black";
-		String player2 = "White";
-		Color playerColor = Color.BLACK;
+		String player1 = "White";
+		String player2 = "Black";
+		Color playerColor = Color.WHITE;
 		
-		if(_nextToPlay == Player.WHITE) {
-			player1 = "White";
-			player2 = "Black";
-			playerColor = Color.WHITE;
-			_nextToPlay = Player.BLACK;
+		if(_nextToPlay == Player.BLACK) {
+			player1 = "Black";
+			player2 = "White";
+			playerColor = Color.BLACK;
+			_nextToPlay = Player.WHITE;
 		}
-		else { _nextToPlay = Player.WHITE;}
+		else { _nextToPlay = Player.BLACK;}
 		
 		// Set color of spot, toggle to color
 		s.setSpotColor(playerColor);
 		s.toggleSpot();
+		spotExited(s);
 		
+		checkWin(playerColor);
 		
-		
-		
+		// Someone won the game
+		if (_gameWon) {
+			// Setting won message
+			_message.setText(player1 + " Wins!");
+		}
+		else {
+			boolean drawGame = true;
+			for (Spot spot : _board) {
+				if (spot.isEmpty()) {drawGame = false; break;}
+			}
+			if (drawGame) { _message.setText("Draw Game."); _gameWon = true;}
+			else {_message.setText(player2 + " to play."); }
+		}
 	}
 	
 	private void checkWin(Color playerColor) {
 		// Checking each row
 		
-		for (int y = 0; y < _board.getHeight(); y++) {
+		for (int y = 0; y < _board.getSpotHeight(); y++) {
 			Spot test = _board.getSpotAt(0, y);
-			if (test.isEmpty()) {continue;}
+			if (test.isEmpty() || playerColor != test.getSpotColor()) {continue;}
 			
 			_gameWon = true;
-			for (int x = 0; x < _board.getWidth(); x++) {
-				if (playerColor != test.getSpotColor()) {
+			for (int x = 1; x < _board.getSpotWidth(); x++) {
+				Spot spot = _board.getSpotAt(x, y);
+				if (spot.isEmpty() || playerColor != spot.getSpotColor()) {
 					_gameWon = false;
 				}
 			}
@@ -123,13 +138,14 @@ public class TicTacToeWidget extends JPanel implements ActionListener, SpotListe
 		if (_gameWon) {return;}
 		
 		// Checking each column
-		for (int x = 0; x < _board.getWidth(); x++) {
+		for (int x = 0; x < _board.getSpotWidth(); x++) {
 			Spot test = _board.getSpotAt(x, 0);
-			if (test.isEmpty()) {continue;}
+			if (test.isEmpty() || playerColor != test.getSpotColor()) {continue;}
 			
 			_gameWon = true;
-			for (int y = 0; y < _board.getWidth(); y++) {
-				if (playerColor != test.getSpotColor()) {
+			for (int y = 0; y < _board.getSpotWidth(); y++) {
+				Spot spot = _board.getSpotAt(x, y);
+				if (spot.isEmpty() || playerColor != spot.getSpotColor()) {
 					_gameWon = false;
 				}
 			}
@@ -142,16 +158,12 @@ public class TicTacToeWidget extends JPanel implements ActionListener, SpotListe
 		// Checking middle point
 		if (middle.isEmpty() || middle.getSpotColor() != playerColor) {return; }
 			
-		// Variable for middle color
-		Color middleColor = middle.getSpotColor();
-		
-		if ((_board.getSpotAt(0, 0).getSpotColor().equals(middleColor) &&
-			 _board.getSpotAt(2, 2).getSpotColor().equals(middleColor)) ||
-			(_board.getSpotAt(2, 0).getSpotColor().equals(middleColor) &&
-			 _board.getSpotAt(0, 2).getSpotColor().equals(middleColor))) {
-				_gameWon = true; return;
+		if ((_board.getSpotAt(0, 0).getSpotColor().equals(playerColor) &&
+			 _board.getSpotAt(2, 2).getSpotColor().equals(playerColor)) ||
+			(_board.getSpotAt(2, 0).getSpotColor().equals(playerColor) &&
+			 _board.getSpotAt(0, 2).getSpotColor().equals(playerColor))) {
+				_gameWon = true;
 		}
-		return;
 	}
 		
 	

@@ -10,7 +10,7 @@ public class OthelloGame {
 		/* Create top level window. */
 		
 		JFrame main_frame = new JFrame();
-		main_frame.setTitle("Connect Four");
+		main_frame.setTitle("Othello");
 		main_frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		/* Create panel for content. Uses BorderLayout. */
@@ -18,12 +18,12 @@ public class OthelloGame {
 		top_panel.setLayout(new BorderLayout());
 		main_frame.setContentPane(top_panel);
 
-		/* Create Connect Four component and put into center
+		/* Create Othello component and put into center
 		 * of content panel.
 		 */
 		
-		ConnectFourWidget c4 = new ConnectFourWidget();
-		top_panel.add(c4, BorderLayout.CENTER);
+		OthelloWidget o = new OthelloWidget();
+		top_panel.add(o, BorderLayout.CENTER);
 
 
 		/* Pack main frame and make visible. */

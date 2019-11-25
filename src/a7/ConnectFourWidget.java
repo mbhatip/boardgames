@@ -102,11 +102,12 @@ public class ConnectFourWidget extends JPanel implements ActionListener, SpotLis
 		else { _nextToPlay = Player.BLACK;}
 		
 		// Set color of spot, toggle to color
+		/*
 		for (int y = _board.getSpotHeight()-1; y >= 0; y--) {
 			Spot spot = _board.getSpotAt(s.getSpotX(), y);
 			if (spot.isEmpty()) { s = spot; break;}
 			if (y == 0) {return;}
-		}
+		}*/
 		
 		s.setSpotColor(playerColor);
 		s.toggleSpot();
@@ -131,25 +132,35 @@ public class ConnectFourWidget extends JPanel implements ActionListener, SpotLis
 	}
 	
 	private void checkWin(Spot s) {
-		Color playerColor = s.getSpotColor();
 		
-		// Checking each column and row
+		// Checking each row and column
+		checkRowsCols(s);
+		if (_gameWon) {return;}
 		
+		// Checking diagonals
+		checkDiagonals(s);
+		if (_gameWon) {return;}
+	}
+	
+	private void checkRowsCols(Spot s) {
 		int width = _board.getSpotWidth();
 		int height = _board.getSpotHeight();
 		
 		for (int dimension = 0; dimension < 2; dimension++) {
-			int limit1 = dimension == 0 ? width : height;
-			int limit2 = dimension == 0 ? height : width;
+			boolean checkRows = dimension == 1;
+			int limit1 = checkRows ? height : width;
+			int limit2 = checkRows ? width : height;
 			
 			for (int var1 = 0; var1 < limit1; var1++) {
 				int counter = 0;
 				Spot start = null;
 				for (int var2 = 0; var2 < limit2; var2++) {
-					int x = dimension == 0 ? var1 : var2;
-					int y = dimension == 0 ? var2 : var1;
+					int x = checkRows ? var1 : var2;
+					int y = checkRows ? var2 : var1;
+					
 					Spot spot = _board.getSpotAt(x, y);
-					if (spot.isEmpty() || playerColor != spot.getSpotColor()) {
+					
+					if (spot.isEmpty() || s.getSpotColor() != spot.getSpotColor()) {
 						counter = 0;
 						continue;
 					}
@@ -164,7 +175,7 @@ public class ConnectFourWidget extends JPanel implements ActionListener, SpotLis
 						for (int i = 0; i < counter; i++) {
 							int row = start.getSpotY();
 							int col = start.getSpotX();
-							if (dimension == 0) { row += i; }
+							if (checkRows) { row += i; }
 							else { col += i;}
 							_board.getSpotAt(col, row).highlightSpot();
 						}
@@ -173,59 +184,34 @@ public class ConnectFourWidget extends JPanel implements ActionListener, SpotLis
 				}
 			}
 		}
-		
-		// Checking diagonals from bottom left to top right
-		
-		for (int i = 0; i < 6; i++) {
+	}
+	
+	private void checkDiagonals(Spot s) {
+		for (int i = 0; i < 12; i++) {
 			int counter = 0;
 			Spot start = null;
-			int x = i < 3 ? 0 : i-2;
-			int y = i < 3 ? i+3 : 5;
-			
+			boolean leftToRight = i < 6;
+			int x;
+			int y;
+			if (leftToRight) {
+				x = i < 3 ? 0 : i-2;
+				y = i < 3 ? i+3 : 5;
+			}
+			else {
+				i -= 6;
+				x = i < 3 ? i+3 : 6;
+				y = i < 3 ? 5 : 8-i;
+				i+=6;
+			}
 			while (true) {
-				Spot spot = _board.getSpotAt(x, y);
-				x++; y--;
-				if (x == _board.getSpotWidth()-1 || y == 0) {
+				if (!validXY(x,y)) {
 					break;
 				}
-				
-				if (spot.isEmpty() || playerColor != spot.getSpotColor()) {
-					counter = 0;
-					continue;
-				}
-				if (counter == 0) {
-					start = spot;
-				}
-				counter++;
-				if (counter >= 4) {
-					spotExited(s);
-					_gameWon = true;
-					for (int j = 0; j < counter; j++) {
-						int column = start.getSpotX();
-						int row = start.getSpotY();
-						_board.getSpotAt(column + j, row - j).highlightSpot();
-					}
-					return;
-				}
-			}
-		}
-		
-		// Checking diagonals from bottom right to top left
-		
-		for (int i = 0; i < 6; i++) {
-			int counter = 0;
-			Spot start = null;
-			int x = i < 3 ? i+3 : 6;
-			int y = i < 3 ? 5 : 8-i;
-			
-			while (true) {
 				Spot spot = _board.getSpotAt(x, y);
 				x--; y--;
-				if (x == 0 || y == 0) {
-					break;
-				}
+				if (leftToRight) {x += 2;}
 				
-				if (spot.isEmpty() || playerColor != spot.getSpotColor()) {
+				if (spot.isEmpty() || s.getSpotColor() != spot.getSpotColor()) {
 					counter = 0;
 					continue;
 				}
@@ -233,19 +219,25 @@ public class ConnectFourWidget extends JPanel implements ActionListener, SpotLis
 					start = spot;
 				}
 				counter++;
-				
 				if (counter >= 4) {
 					spotExited(s);
 					_gameWon = true;
 					for (int j = 0; j < counter; j++) {
-						int column = start.getSpotX();
+						int col = start.getSpotX();
 						int row = start.getSpotY();
-						_board.getSpotAt(column - j, row - j).highlightSpot();
+						if (leftToRight) {col += 2*j;}
+						_board.getSpotAt(col - j, row - j).highlightSpot();
 					}
 					return;
 				}
 			}
 		}
+	}
+	
+	
+	
+	private boolean validXY(int x, int y) {
+		return !(x < 0 || x == _board.getSpotWidth() || y < 0 || y == _board.getSpotHeight());
 	}
 		
 	

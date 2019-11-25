@@ -102,12 +102,11 @@ public class ConnectFourWidget extends JPanel implements ActionListener, SpotLis
 		else { _nextToPlay = Player.BLACK;}
 		
 		// Set color of spot, toggle to color
-		/*
 		for (int y = _board.getSpotHeight()-1; y >= 0; y--) {
 			Spot spot = _board.getSpotAt(s.getSpotX(), y);
 			if (spot.isEmpty()) { s = spot; break;}
 			if (y == 0) {return;}
-		}*/
+		}
 		
 		s.setSpotColor(playerColor);
 		s.toggleSpot();
@@ -148,8 +147,8 @@ public class ConnectFourWidget extends JPanel implements ActionListener, SpotLis
 				int counter = 0;
 				Spot start = null;
 				for (int var2 = 0; var2 < limit2; var2++) {
-					int x = checkRows ? var1 : var2;
-					int y = checkRows ? var2 : var1;
+					int x = checkRows ? var2 : var1;
+					int y = checkRows ? var1 : var2;
 					Spot spot = _board.getSpotAt(x, y);
 					if (spot.isEmpty() || playerColor != spot.getSpotColor()) {
 						counter = 0;
@@ -166,8 +165,8 @@ public class ConnectFourWidget extends JPanel implements ActionListener, SpotLis
 						for (int i = 0; i < counter; i++) {
 							int row = start.getSpotY();
 							int col = start.getSpotX();
-							if (checkRows) { row += i; }
-							else { col += i;}
+							if (checkRows) { col += i; }
+							else { row += i;}
 							_board.getSpotAt(col, row).highlightSpot();
 						}
 						return;
@@ -191,7 +190,7 @@ public class ConnectFourWidget extends JPanel implements ActionListener, SpotLis
 				i -= 6;
 				x = i < 3 ? i+3 : 6;
 				y = i < 3 ? 5 : 8-i;
-				i+=6;
+				i += 6;
 			}
 			while (true) {
 				if (!validXY(x,y)) {

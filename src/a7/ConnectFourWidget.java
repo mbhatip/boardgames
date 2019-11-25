@@ -82,7 +82,7 @@ public class ConnectFourWidget extends JPanel implements ActionListener, SpotLis
 		
 	}
 	
-	// Implementation of SpotListener, logic to run tic tac toe game
+	// Implementation of SpotListener, logic to run connect four game
 	
 	public void spotClicked(Spot s) {
 		// Checking game won

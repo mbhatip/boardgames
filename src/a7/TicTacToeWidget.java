@@ -4,6 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -26,10 +28,12 @@ public class TicTacToeWidget extends JPanel implements ActionListener, SpotListe
 	private JLabel _message;		// Label for messages
 	private boolean _gameWon;		// Game Won boolean
 	private Player _nextToPlay;		// Turn of player 2
+	private Spot _selection;		// Spot selected by player
+	
 	
 	public TicTacToeWidget() {
 		
-		// Create SpotBoard and message label
+		// Create SpotBoard and message label, initializing selection spot
 		_board = new JSpotBoard(3,3, BoardStyle.UNIFORM);
 		_message = new JLabel();
 		
@@ -100,12 +104,15 @@ public class TicTacToeWidget extends JPanel implements ActionListener, SpotListe
 		}
 		else { _nextToPlay = Player.BLACK;}
 		
-		// Set color of spot, toggle to color
-		s.setSpotColor(playerColor);
-		s.toggleSpot();
-		spotExited(s);
+		// Setting selection equal to spot
+		_selection = s;
 		
-		checkWin(playerColor);
+		// Set color of spot, toggle to color
+		_selection.setSpotColor(playerColor);
+		_selection.toggleSpot();
+		spotExited(_selection);
+		
+		checkWin();
 		
 		// Someone won the game
 		if (_gameWon) {
@@ -122,52 +129,108 @@ public class TicTacToeWidget extends JPanel implements ActionListener, SpotListe
 		}
 	}
 	
-	private void checkWin(Color playerColor) {
-		// Checking each row
+	private void checkWin() {
+		// Checking game won variable
+		if (_gameWon) {return;}
 		
-		for (int y = 0; y < _board.getSpotHeight(); y++) {
-			Spot test = _board.getSpotAt(0, y);
-			if (test.isEmpty() || playerColor != test.getSpotColor()) {continue;}
-			
-			_gameWon = true;
-			for (int x = 1; x < _board.getSpotWidth(); x++) {
-				Spot spot = _board.getSpotAt(x, y);
-				if (spot.isEmpty() || playerColor != spot.getSpotColor()) {
-					_gameWon = false;
-				}
-			}
-		}
+		// Checking each row
+		checkRows();
 		if (_gameWon) {return;}
 		
 		// Checking each column
-		for (int x = 0; x < _board.getSpotWidth(); x++) {
-			Spot test = _board.getSpotAt(x, 0);
-			if (test.isEmpty() || playerColor != test.getSpotColor()) {continue;}
-			
-			_gameWon = true;
-			for (int y = 0; y < _board.getSpotWidth(); y++) {
-				Spot spot = _board.getSpotAt(x, y);
-				if (spot.isEmpty() || playerColor != spot.getSpotColor()) {
-					_gameWon = false;
-				}
-			}
-		}
+		checkCols();
 		if (_gameWon) {return;}
 		
-		// Variable for middle spot at 1,1
-		Spot middle = _board.getSpotAt(1, 1);
+		// Checking diagonals
+		checkDiagonals();
+		if (_gameWon) {return;}
 		
-		// Checking middle point
-		if (middle.isEmpty() || middle.getSpotColor() != playerColor) {return; }
-			
-		if ((_board.getSpotAt(0, 0).getSpotColor().equals(playerColor) &&
-			 _board.getSpotAt(2, 2).getSpotColor().equals(playerColor)) ||
-			(_board.getSpotAt(2, 0).getSpotColor().equals(playerColor) &&
-			 _board.getSpotAt(0, 2).getSpotColor().equals(playerColor))) {
-				_gameWon = true;
-		}
 	}
 		
+	/* checkRows iterates through each possible row in the board and passes
+	 * them to the checkListOfSpots function. Returns if _gameWon is true
+	 * or out of rows
+	 */
+	
+	private void checkRows() {
+		List<Spot> row = new ArrayList<>();
+		for (Spot s : _board) {
+			row.add(s);
+			if (s.getSpotX() >= _board.getSpotWidth()-1) {
+				checkListOfSpots(row);
+				if (_gameWon) {return;}
+				row.clear();
+			}
+		}
+	}
+	
+	/* checkCols iterates through each possible column in the board and passes
+	 * them to the checkListOfSpots function. Returns if _gameWon is true
+	 * or out of columns
+	 */
+	
+	private void checkCols() {
+		List<Spot> col = new ArrayList<>();
+		for (int x = 0; x < _board.getSpotWidth(); x++) {
+			for (int y = 0; y < _board.getSpotHeight(); y++) {
+				col.add(_board.getSpotAt(x, y));
+			}
+			checkListOfSpots(col);
+			if (_gameWon) {return;}
+			col.clear();
+		}
+	}
+	
+	/* checkDiagonals iterates through each possible diagonal in the board and passes
+	 * them to the checkListOfSpots function. Returns if _gameWon is true
+	 * or out of diagonals
+	 */
+	private void checkDiagonals() {
+
+		for (int i = 0; i < 2; i++) {
+			List<Spot> diagonal = new ArrayList<>();
+			int x = i == 0 ? 0 : 2;
+			int y = 2;
+			while (true) {
+				if (invalidXY(x,y)) {break;}
+				diagonal.add(_board.getSpotAt(x, y));
+				if (i == 0) {x++;} else {x--;} y--;
+			}
+			checkListOfSpots(diagonal);
+			if (_gameWon) {return;}
+		}
+	}
+	
+	/*
+	 * Checks to see if the passed x and y values are out of bounds, used by checkDiagonals 
+	 * function	
+	 */
+	
+	private boolean invalidXY(int x, int y) {
+		return (x < 0 || x >= _board.getSpotWidth() || y < 0 || y >= _board.getSpotHeight());
+	}
+	
+	/* 
+	 * Checks to see if list of spots passed to it match the selection color and have 4 in a 
+	 * row. If there is a 4 in a row, highlights each spot and makes global win variable true,
+	 * then returns
+	 */
+	
+	private void checkListOfSpots(List<Spot> spots) {
+		List<Spot> winners = new ArrayList<Spot>();
+		for (Spot spot : spots) {
+			winners.add(spot);
+			if (spot.isEmpty() || _selection.getSpotColor() != spot.getSpotColor()) {
+				winners.clear();
+			}
+			if (winners.size() >= 3) {
+				spotExited(_selection);
+				_gameWon = true;
+				return;
+			}
+			
+		}
+	}
 	
 
 	public void spotEntered(Spot s) {

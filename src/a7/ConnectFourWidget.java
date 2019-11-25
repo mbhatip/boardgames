@@ -132,17 +132,10 @@ public class ConnectFourWidget extends JPanel implements ActionListener, SpotLis
 	}
 	
 	private void checkWin(Spot s) {
+		Color playerColor = s.getSpotColor();
 		
-		// Checking each row and column
-		checkRowsCols(s);
-		if (_gameWon) {return;}
+		// Checking each column and row
 		
-		// Checking diagonals
-		checkDiagonals(s);
-		if (_gameWon) {return;}
-	}
-	
-	private void checkRowsCols(Spot s) {
 		int width = _board.getSpotWidth();
 		int height = _board.getSpotHeight();
 		
@@ -157,10 +150,8 @@ public class ConnectFourWidget extends JPanel implements ActionListener, SpotLis
 				for (int var2 = 0; var2 < limit2; var2++) {
 					int x = checkRows ? var1 : var2;
 					int y = checkRows ? var2 : var1;
-					
 					Spot spot = _board.getSpotAt(x, y);
-					
-					if (spot.isEmpty() || s.getSpotColor() != spot.getSpotColor()) {
+					if (spot.isEmpty() || playerColor != spot.getSpotColor()) {
 						counter = 0;
 						continue;
 					}
@@ -184,9 +175,8 @@ public class ConnectFourWidget extends JPanel implements ActionListener, SpotLis
 				}
 			}
 		}
-	}
-	
-	private void checkDiagonals(Spot s) {
+		
+		// Checking diagonals
 		for (int i = 0; i < 12; i++) {
 			int counter = 0;
 			Spot start = null;
@@ -211,7 +201,7 @@ public class ConnectFourWidget extends JPanel implements ActionListener, SpotLis
 				x--; y--;
 				if (leftToRight) {x += 2;}
 				
-				if (spot.isEmpty() || s.getSpotColor() != spot.getSpotColor()) {
+				if (spot.isEmpty() || playerColor != spot.getSpotColor()) {
 					counter = 0;
 					continue;
 				}
@@ -232,9 +222,44 @@ public class ConnectFourWidget extends JPanel implements ActionListener, SpotLis
 				}
 			}
 		}
+		
+		// Checking diagonals from bottom right to top left
+		/*
+		for (int i = 0; i < 6; i++) {
+			int counter = 0;
+			Spot start = null;
+			int x = i < 3 ? i+3 : 6;
+			int y = i < 3 ? 5 : 8-i;
+			
+			while (true) {
+				if (!validXY(x,y)) {
+					break;
+				}
+				Spot spot = _board.getSpotAt(x, y);
+				x--; y--;
+				
+				if (spot.isEmpty() || playerColor != spot.getSpotColor()) {
+					counter = 0;
+					continue;
+				}
+				if (counter == 0) {
+					start = spot;
+				}
+				counter++;
+				
+				if (counter >= 4) {
+					spotExited(s);
+					_gameWon = true;
+					for (int j = 0; j < counter; j++) {
+						int column = start.getSpotX();
+						int row = start.getSpotY();
+						_board.getSpotAt(column - j, row - j).highlightSpot();
+					}
+					return;
+				}
+			}
+		}*/
 	}
-	
-	
 	
 	private boolean validXY(int x, int y) {
 		return !(x < 0 || x == _board.getSpotWidth() || y < 0 || y == _board.getSpotHeight());

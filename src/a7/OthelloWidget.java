@@ -37,11 +37,11 @@ public class OthelloWidget extends JPanel implements ActionListener, SpotListene
 		_message = new JLabel();
 		_selection = null;
 		
-		// Set layout and place spotboard at center
+		// Set layout and place spot board at center
 		setLayout(new BorderLayout());
 		add(_board, BorderLayout.CENTER);
 		
-		// Subpanel for message and reset button
+		// Sub-panel for message and reset button
 		JPanel reset_message_panel = new JPanel();
 		reset_message_panel.setLayout(new BorderLayout());
 		
@@ -73,15 +73,17 @@ public class OthelloWidget extends JPanel implements ActionListener, SpotListene
 		for (Spot s : _board) {
 			s.clearSpot();
 			s.unhighlightSpot();
+			s.setSpotColor(Color.RED);
 		}
 		
-		/*int x[] = {3, 4, 4, 3};
-		int y[] = {3, 3, 4, 4};*/
+		// coordinates for points
 		int x[] = {3, 4, 4, 3};
 		int y[] = {3, 3, 4, 4};
+		
 		Color[] c = {Color.WHITE, Color.BLACK};
 		
-		for (int i = 0; i < 4; i++) {
+		// putting points on board with loop
+		for (int i = 0; i < x.length; i++) {
 			Spot s = _board.getSpotAt(x[i], y[i]);
 			s.setSpotColor(c[i%2]);
 			s.toggleSpot();
@@ -98,14 +100,15 @@ public class OthelloWidget extends JPanel implements ActionListener, SpotListene
 		
 	}
 	
-	// Implementation of SpotListener, logic to run connect four game
+	// Implementation of SpotListener
 	
 	public void spotClicked(Spot s) {
 		
 		// Setting global selection spot variable equal to s
 		_selection = s;
 		
-		if (!_selection.isHighlighted()) {return;}
+		// if spot move is not valid (highlighted), return
+		if (!_selection.isHighlighted()) return;
 		
 		// getting list of spots to change
 		List<Spot> spotsToChange = returnValidSpots();
@@ -124,7 +127,7 @@ public class OthelloWidget extends JPanel implements ActionListener, SpotListene
 		}
 		else { _nextToPlay = Player.WHITE;}	
 		
-		// adding selected spot to spotsToChange
+		// adding selection spot to list of spots that need to change
 		spotsToChange.add(_selection);
 		
 		// Change color of each spot in list
@@ -134,8 +137,10 @@ public class OthelloWidget extends JPanel implements ActionListener, SpotListene
 			spot.toggleSpot();
 		}
 		
+		// unhighlight spot after finished
 		_selection.unhighlightSpot();
-		
+
+		// checking if moves can be made
 		checkWin();
 		
 		if (_gameWon) {
@@ -154,14 +159,20 @@ public class OthelloWidget extends JPanel implements ActionListener, SpotListene
 				}
 			}
 			
+			// variables based on who won
+			
 			String winner = player1Count > player2Count ? player1 : player2;
 			int score = player1Count > player2Count ? player1Count : player2Count;
 			int score2 = player1Count > player2Count ? player2Count : player1Count;
 			
-			_message.setText("Game over. " + winner + " Wins! Score: " + score + " to " + score2);
+			if (score == score2) winner = "Draw. ";
+			else winner += " Wins!";
+			
+			// display winning message
+			_message.setText("Game over. " + winner + " Score: " + score + " to " + score2);
 			return;
 		}
-	
+		// continue game and update text
 		else if (_nextToPlay == Player.BLACK) {
 			_message.setText("Black to play.");
 			_playerColor = Color.BLACK;
@@ -173,15 +184,16 @@ public class OthelloWidget extends JPanel implements ActionListener, SpotListene
 	}
 	
 	private List<Spot> returnValidSpots() {
+		
+		if (!_selection.isEmpty()) {return new ArrayList<>();}
+		
 		List<Spot> row = new ArrayList<>();
 		List<Spot> col = new ArrayList<>();
-		//List<Spot> dia = new ArrayList<>();
+		List<Spot> dia = new ArrayList<>();
+		List<Spot> dia2 = new ArrayList<>();
 		List<Spot> validSpots = new ArrayList<>();
 		
-		if (!_selection.isEmpty()) {return validSpots;}
-		
 		for (Spot spot : _board) {
-			if (spot.isEmpty()) {continue;}
 			if (_selection.getSpotX() == spot.getSpotX()) {
 				col.add(spot);
 			}
@@ -190,83 +202,79 @@ public class OthelloWidget extends JPanel implements ActionListener, SpotListene
 			}
 			if (_selection.getSpotX() - _selection.getSpotY() ==
 				spot.getSpotX() - spot.getSpotY()) {
-				//dia.add(spot);
+				dia.add(spot);
+			}
+			if (_selection.getSpotX() + _selection.getSpotY() ==
+					spot.getSpotX() + spot.getSpotY()) {
+					dia2.add(spot);
 			}
 		}
 		
-		
-		row = getList(row, "row");
-		col = getList(col, "col");
-		//dia = getListOfSpots(dia);
-		
-		if (row != null) {validSpots.addAll(row);}
-		if (col != null) {validSpots.addAll(col);}
-		//if (dia != null) {_validSpots.addAll(dia);}
+		validSpots.addAll(getList(row));
+		validSpots.addAll(getList(col));
+		validSpots.addAll(getList(dia));
+		validSpots.addAll(getList(dia2));
 		
 		return validSpots;
 	}
 	
-	
-	
-	/* 
-	 * Checks to see if list of spots passed to it match the selection color and have 4 in a 
-	 * row. If there is a 4 in a row, highlights each spot and makes global win variable true,
-	 * then returns
-	 */
-	
-	private List<Spot> getList(List<Spot> spots, String type) {
-
-		boolean flag = true;
-		boolean flag2 = false;
-		List<Spot> list = new ArrayList<>();
-		int prevSpot = 0;
+	private List<Spot> getList(List<Spot> spots) {
+		List<Spot> allSpots = new ArrayList<>();
+		List<Spot> temp = new ArrayList<>();
+		boolean started = false;
 		for (Spot s : spots) {
-			
-			int difference = 0;
-			switch (type.toLowerCase()) {
-			case "row":
-				difference = s.getSpotX() - _selection.getSpotX();
-				break;
-			case "col":
-				difference = s.getSpotY() - _selection.getSpotY();
-				break;
-			case "dia":
-				
-				break;
+			if (s.equals(_selection)) {
+				temp.clear();
+				started = true;
+				continue;
 			}
+			if (!started) {continue;}
 			
-			
-			if ((difference > 1)&& flag) { list.clear(); return list;}
-			else {flag = false;}
-			
-			if (difference > 0 && s.getSpotColor().equals(_playerColor)) {
-				return list;
+			if (s.isEmpty()) {
+				temp.clear(); break;
 			}
-			else if (difference < 0) {
-				if (s.getSpotColor().equals(_playerColor)) {
-					list.clear();
-					flag2 = true;
-					continue;
-				}
-				if (spots.get(spots.size()-1).equals(s) && difference == -1 && flag2) {
-					list.add(s);
-					return list;
-				}
+			if (s.getSpotColor().equals(_playerColor)) {
+				started = false;
+				break;																																																						
 			}
-			list.add(s);
+			temp.add(s);
 		}
-		list.clear();
-		return list;
+		if (!started) {
+			allSpots.addAll(temp);
+		}
+		
+		temp.clear();
+		started = false;
+		for (Spot s : spots) {
+			if (s.getSpotColor().equals(_playerColor)) {
+				temp.clear();
+				started = true;
+				continue;
+			}
+			if (!started) {continue;}
+			
+			if (s.equals(_selection)) {
+				started = false;
+				break;
+			}
+			if (s.isEmpty()) {
+				temp.clear(); started = false; continue;
+			}
+			temp.add(s);
+		}
+		if (!started) {
+			allSpots.addAll(temp);
+		}
+		return allSpots;
 	}
 	
 	/*
-	 * function checks to see if game is finished (no moves left to be made)
+	 * function checks to see if game is finished
+	 * both players dont have valid moves
 	 */
 	private void checkWin() {
 		boolean noMoves = false;
-		Color c = null;
 		while (true) {
-			c = _playerColor;
 			List<Spot> temp = new ArrayList<>();			
 			if (_nextToPlay == Player.WHITE) {
 				_playerColor = Color.WHITE;
@@ -287,24 +295,19 @@ public class OthelloWidget extends JPanel implements ActionListener, SpotListene
 				noMoves = true;
 				if(_nextToPlay == Player.WHITE)
 				{ _nextToPlay = Player.BLACK;}
-				
-				else {_nextToPlay = Player.WHITE;}	
+				else {_nextToPlay = Player.WHITE;}
 			}
 			else {
-				break;
+				return;
 			}
 		}
-		_playerColor = c;
 	}
 
 	public void spotEntered(Spot s) {
-		
 		if (_gameWon) {return;}
 		
 		// Make global variable selection equal to s
 		_selection = s;
-		
-		//_selection = _board.getSpotAt(2, 4);
 		
 		// Highlight valid spots where move can be made
 		if (!returnValidSpots().isEmpty()) {
